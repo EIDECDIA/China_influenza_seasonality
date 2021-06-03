@@ -101,24 +101,37 @@ compare <- full_join(ILI_MMR, TPO_MMR, by = c("geo_code" = "geo_code", "month" =
 # Grid plot
 
 # ILI ~ TPO
-summary(lm(data = compare, formula =  ILI ~ TPO))   
+summary(lm(data = compare, formula =  TPO ~ ILI))   
 
 a<- compare %>% 
   filter(!is.na(ILI) & !is.na(TPO)) %>% 
-  ggplot(aes(y = ILI, x = TPO)) +
+  ggplot(aes(y = TPO, x = ILI)) +
   geom_point()+
   geom_smooth(method = "lm") +
-  annotation_custom(grobTree(text_grob("y = 0.036 + 0.01x\nR^2 = 0.002", x = 0.1, y= 0.9, hjust = 0, size = 6)))+ 
+  annotation_custom(grobTree(text_grob("y = 0.13 + 0.018x\nR^2 = 0.002", x = 0.1, y= 0.9, hjust = 0, size = 6)))+ 
   theme_cowplot()+
   theme(legend.position = "none",
         axis.title.x = element_blank(),
         axis.text = element_text(size = 6))
 
+# TPI ~ ILI
+summary(lm(data = compare, formula =  TPI ~ ILI))
+
+b<- compare %>% 
+  filter(!is.na(TPI) & !is.na(ILI)) %>% 
+  ggplot(aes(y = TPI, x = ILI)) +
+  geom_point()+
+  geom_smooth(method = "lm")+
+  annotate("text", x = 1, y = 1, label = "No data")+
+  theme_cowplot()+
+  theme(legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text = element_blank())
 
 # TPI ~ TPO
 summary(lm(data = compare, formula =  TPI ~ TPO))
 
-b<- compare %>% 
+c<- compare %>% 
   filter(!is.na(TPI) & !is.na(TPO)) %>% 
   ggplot(aes(y = TPI, x = TPO)) +
   geom_point()+
@@ -127,28 +140,28 @@ b<- compare %>%
   theme_cowplot()+
   theme(legend.position = "none",
         axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
         axis.text = element_text(size = 6))
 
+# MR ~ ILI
+summary(lm(data = compare, formula =  MR ~ ILI))
 
-# TPI ~ ILI
-summary(lm(data = compare, formula =  TPI ~ ILI))
-
-c<- compare %>% 
-  filter(!is.na(TPI) & !is.na(ILI)) %>% 
-  ggplot(aes(y = TPI, x = ILI)) +
+d<- compare %>% 
+  filter(!is.na(MR) & !is.na(ILI)) %>% 
+  ggplot(aes(y = MR, x = ILI)) +
   geom_point()+
   geom_smooth(method = "lm")+
-  annotate("text", x = 1, y = 1, label = "No data")+
+  annotation_custom(grobTree(text_grob("y = -1.43 + 35.9x\nR^2 = 0.32", x = 0.1, y= 0.9, hjust = 0, size = 6)))+ 
   theme_cowplot()+
   theme(legend.position = "none",
-        axis.title.y = element_blank(),
         axis.title.x = element_blank(),
-        axis.text = element_blank())
+        axis.text = element_text(size = 6))
+
 
 # MR ~ TPO
 summary(lm(data = compare, formula =  MR ~ TPO))
 
-d<- compare %>% 
+e<- compare %>% 
   filter(!is.na(MR) & !is.na(TPO)) %>% 
   ggplot(aes(y = MR, x = TPO)) +
   geom_point()+
@@ -157,22 +170,10 @@ d<- compare %>%
   theme_cowplot()+
   theme(legend.position = "none",
         axis.title.x = element_blank(),
-        axis.text = element_text(size = 6))
-
-# MR ~ ILI
-summary(lm(data = compare, formula =  MR ~ ILI))
-
-e<- compare %>% 
-  filter(!is.na(MR) & !is.na(ILI)) %>% 
-  ggplot(aes(y = MR, x = ILI)) +
-  geom_point()+
-  geom_smooth(method = "lm")+
-  annotation_custom(grobTree(text_grob("y = -1.43 + 35.9x\nR^2 = 0.32", x = 0.1, y= 0.9, hjust = 0, size = 6)))+ 
-  theme_cowplot()+
-  theme(legend.position = "none",
-        axis.title.y = element_blank(),
         axis.title.x = element_blank(),
         axis.text = element_text(size = 6))
+
+
 
 # MR ~ TPI
 summary(lm(data = compare, formula =  MR ~ TPI))
@@ -189,23 +190,10 @@ f<- compare %>%
         axis.title.x = element_blank(),
         axis.text = element_blank())
 
-# MAC ~ TPO
-summary(lm(data = compare, formula =  MAC ~ TPO))
-
-g<- compare %>% 
-  filter(!is.na(MAC) & !is.na(TPO)) %>% 
-  ggplot(aes(y = MAC, x = TPO)) +
-  geom_point()+
-  geom_smooth(method = "lm")+
-  annotation_custom(grobTree(text_grob("y = -0.81 + 13.5x\nR^2 = 0.66", x = 0.1, y= 0.9, hjust = 0, size = 6)))+ 
-  theme_cowplot()+
-  theme(legend.position = "none",
-        axis.text = element_text(size = 6))
-
 # MAC ~ ILI
 summary(lm(data = compare, formula =  MAC ~ ILI))
 
-h<- compare %>% 
+g<- compare %>% 
   filter(!is.na(MAC) & !is.na(ILI)) %>% 
   ggplot(aes(y = MAC, x = ILI)) +
   geom_point()+
@@ -214,6 +202,22 @@ h<- compare %>%
   theme_cowplot()+
   theme(legend.position = "none",
         axis.text = element_text(size = 6))
+
+# MAC ~ TPO
+summary(lm(data = compare, formula =  MAC ~ TPO))
+
+h<- compare %>% 
+  filter(!is.na(MAC) & !is.na(TPO)) %>% 
+  ggplot(aes(y = MAC, x = TPO)) +
+  geom_point()+
+  geom_smooth(method = "lm")+
+  annotation_custom(grobTree(text_grob("y = -0.81 + 13.5x\nR^2 = 0.66", x = 0.1, y= 0.9, hjust = 0, size = 6)))+ 
+  theme_cowplot()+
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.text = element_text(size = 6))
+
+
 
 # MAC ~ TPI
 summary(lm(data = compare, formula =  MAC ~ TPI))
@@ -249,7 +253,6 @@ grid_outcome <- plot_grid(
   b, c, NULL, NULL,
   d, e, f, NULL,
   g, h, i, j,
-  #labels = c("A", "", "", "", "B", "C", "", "", "D"), 
   ncol = 4, align = "hv")
 
 grid_outcome
