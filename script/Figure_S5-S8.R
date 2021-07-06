@@ -33,7 +33,7 @@ group_lat <- map(1:length(prv_1), function(x){geo_name %>%
 
 # Nested prv latitude sort - extract names 
 long_name <- geo_name %>% 
-  mutate(prv_short = word(prv_name,1)) %>% 
+  mutate(prv_short = if_else(str_count(prv_name, '\\w+') == 1,  word(prv_name, 1), word(prv_name, 1,2))) %>% 
   mutate(prf_short = word(prf_name,1)) %>% 
   mutate(cty_short = word(cty_name,1)) %>% 
   mutate(long_name = paste(prv_short, if_else(is.na(prf_short), "", prf_short))) %>%
@@ -41,7 +41,7 @@ long_name <- geo_name %>%
   select(code, long_name)
 
 group_lat_name <- geo_name %>% 
-  mutate(prv_short = word(prv_name,1)) %>% 
+  mutate(prv_short = if_else(str_count(prv_name, '\\w+') == 1,  word(prv_name, 1), word(prv_name, 1,2))) %>% 
   mutate(prf_short = word(prf_name,1)) %>% 
   mutate(cty_short = word(cty_name,1)) %>% 
   mutate(long_name = paste(prv_short, if_else(is.na(prf_short), "", prf_short))) %>%

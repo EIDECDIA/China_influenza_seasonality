@@ -6,7 +6,9 @@
 pacman::p_load(readr, readxl, tidyverse, lubridate, tsibble, ggpubr, geofacet, sf, colorspace, cowplot, ggtext, ggnewscale, grid)
 
 ### Data extraction sheet (DES) of all data included in analysis 
-DES_geo <- read_excel("DES/DES.xlsx")
+DES_geo <- read_excel("DES/DES.xlsx") %>% 
+  mutate(prv = if_else(prv == "Neimenggu", "Inner Mongolia", prv)) %>% 
+  mutate(prv = if_else(prv == "Xizang", "Tibet", prv))
 
 
 #### Function to monthly aggreate all data
@@ -98,6 +100,8 @@ shp <- readRDS("data/china_shp.rds") %>%
   mutate(PYNAME = as.character(PYNAME)) %>% 
   mutate(CNTY_CODE = as.character(CNTY_CODE)) %>% 
   mutate(PYNAME = if_else(CNTY_CODE == "431000", "Chenzhou", PYNAME)) %>% # Incorrect name 
+  mutate(PYNAME = if_else(PYNAME == "Neimenggu", "Inner Mongolia", PYNAME)) %>% 
+  mutate(PYNAME = if_else(PYNAME == "Xizang", "Tibet", PYNAME)) %>% 
   st_as_sf()
 
 # Latitude order of prv, prf, cty based on centroid
@@ -170,3 +174,8 @@ geo_name_function <- function(){
 }
 
 geo_name <- geo_name_function()
+
+
+# Nine dash line shp
+nine <- st_read("data/nine/nine.shp") %>% 
+  st_transform(.,st_crs(shp))

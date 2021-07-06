@@ -170,7 +170,7 @@ e<- compare %>%
   theme_cowplot()+
   theme(legend.position = "none",
         axis.title.x = element_blank(),
-        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
         axis.text = element_text(size = 6))
 
 

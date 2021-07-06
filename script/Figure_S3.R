@@ -88,6 +88,7 @@ ILI_func <- function(){
     new_scale("fill") +
     
     geom_sf(data = map_prf, aes(fill = no_study)) +
+    geom_sf(data = nine, colour = "grey50", fill = "grey50", size = 0.5)+
     scale_fill_gradient(name = "Prefecture", low = "white", high = "#d95f02", na.value = "grey90", breaks = c(2, 4),limits = c(0, 6), 
                         guide = guide_colorsteps(even.steps = TRUE, show.limits = TRUE, title.position="top", barwidth = 12, order=2, title.hjust= 0.5, frame.colour = "black"))+
     
@@ -180,6 +181,7 @@ TPO_func <- function(){
     new_scale("fill") +
     
     geom_sf(data = map_prf, aes(fill = no_study)) +
+    geom_sf(data = nine, colour = "grey50", fill = "grey50", size = 0.5)+
     scale_fill_gradient(name = "Prefecture", low = "white", high = "#d95f02", na.value = "grey90", breaks = c(2, 4),limits = c(0, 6), 
                         guide = guide_colorsteps(even.steps = TRUE, show.limits = TRUE, title.position="top", barwidth = 12, order=2, title.hjust= 0.5, frame.colour = "black"))+
     
@@ -274,6 +276,7 @@ TPI_func <- function(){
     new_scale("fill") +
     
     geom_sf(data = map_prf, aes(fill = no_study)) +
+    geom_sf(data = nine, colour = "grey50", fill = "grey50", size = 0.5)+
     scale_fill_gradient(name = "Prefecture", low = "white", high = "#d95f02", na.value = "grey90", breaks = c(2, 4),limits = c(0, 6), 
                         guide = guide_colorsteps(even.steps = TRUE, show.limits = TRUE, title.position="top", barwidth = 12, order=2, title.hjust= 0.5, frame.colour = "black"))+
     
@@ -374,6 +377,7 @@ MOR_func <- function(){
     new_scale("fill") +
     
     geom_sf(data = map_cty, aes(fill = no_study)) +
+    geom_sf(data = nine, colour = "grey50", fill = "grey50", size = 0.5)+
     scale_fill_gradient(name = "County", low = "white", high = "#7570b3", na.value = "grey90", breaks = c(1, 2),limits = c(0, 3), 
                         guide = guide_colorsteps(even.steps = TRUE, show.limits = TRUE, title.position="top", barwidth = 12, order=3, title.hjust= 0.5, frame.colour = "black"))+
     facet_grid(cols =  vars(name)) +
@@ -416,6 +420,6 @@ plot_grid(plot_no_legend, legend, ncol = 1, rel_heights = c(10, 1))
 #Save
 ggsave("output/Sup_fig_S3.png",
        width = 210,
-       height = 200,
+       height = 230,
        dpi = 320,
        units = "mm")

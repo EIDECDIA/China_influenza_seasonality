@@ -32,7 +32,7 @@ group_lat <- map(1:length(prv_1), function(x){geo_name %>%
 
 # Nested prv latitude sort - extract names 
 long_name <- geo_name %>% 
-  mutate(prv_short = word(prv_name,1)) %>% 
+  mutate(prv_short = if_else(str_count(prv_name, '\\w+') == 1,  word(prv_name, 1), word(prv_name, 1,2))) %>% 
   mutate(prf_short = word(prf_name,1)) %>% 
   mutate(cty_short = word(cty_name,1)) %>% 
   mutate(long_name = paste(prv_short, if_else(is.na(prf_short), "", prf_short))) %>%
@@ -40,7 +40,7 @@ long_name <- geo_name %>%
   select(code, long_name)
 
 group_lat_name <- geo_name %>% 
-  mutate(prv_short = word(prv_name,1)) %>% 
+  mutate(prv_short = if_else(str_count(prv_name, '\\w+') == 1,  word(prv_name, 1), word(prv_name, 1,2))) %>% 
   mutate(prf_short = word(prf_name,1)) %>% 
   mutate(cty_short = word(cty_name,1)) %>% 
   mutate(long_name = paste(prv_short, if_else(is.na(prf_short), "", prf_short))) %>%
@@ -152,7 +152,7 @@ MMR_data %>%
 
 
 ggsave("output/Sup_fig_S9.png",
-       width = 200,
+       width = 140,
        height = 220,
        dpi = 320,
        units = "mm")
@@ -191,7 +191,7 @@ MMR_data %>%
         axis.title = element_blank())
 
 ggsave("output/Sup_fig_S10.png",
-       width = 180,
+       width = 140,
        height = 230,
        dpi = 320,
        units = "mm")
@@ -234,7 +234,7 @@ MMR_data %>%
         axis.title = element_blank())
 
 ggsave("output/Sup_fig_S11.png",
-       width = 180,
+       width = 140,
        height = 230,
        dpi = 320,
        units = "mm")
@@ -354,7 +354,7 @@ plot_rest_MMR <- function(){
 plot_rest_MMR()
 
 ggsave("output/Sup_fig_S12.png",
-       width = 180,
+       width = 140,
        height = 160,
        dpi = 320,
        units = "mm")

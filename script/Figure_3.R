@@ -111,6 +111,7 @@ plot_epidemic_map <- function(STRAIN){
     geom_sf(data = epi_map_prv, aes(fill=epidemic_ord))+
     geom_sf(data = epi_map_prf,aes(fill=epidemic_ord))+
     geom_sf(data = epi_map_cty,aes(fill=epidemic_ord))+
+    geom_sf(data = nine, colour = "grey50", fill = "grey50", size = 0.5)+
     facet_wrap(~oct_name, ncol = 3) +
     scale_fill_manual(values =  c("Non-epidemic" = "#91cf60", "Epidemic onset" = "#ffffbf", "Epidemic" = "#fc8d59", "No data" = "grey90"), 
                       breaks = c("Non-epidemic", "Epidemic onset", "Epidemic", "No data")) +
@@ -131,7 +132,7 @@ plot_epidemic_map <- function(STRAIN){
 plot_epidemic_map("All influenza strains")
 
 ggsave("output/Fig_3.png",
-       width = 210,
+       width = 170,
        height = 240,
        dpi = 320,
        units = "mm")
@@ -141,7 +142,7 @@ ggsave("output/Fig_3.png",
 plot_epidemic_map("A/H3N2")
 
 ggsave("output/Sup_fig_S15.png",
-       width = 210,
+       width = 170,
        height = 240,
        dpi = 320,
        units = "mm")
@@ -151,7 +152,7 @@ ggsave("output/Sup_fig_S15.png",
 plot_epidemic_map("A/H1N1pdm09")
 
 ggsave("output/Sup_fig_S16.png",
-       width = 210,
+       width = 170,
        height = 240,
        dpi = 320,
        units = "mm")
@@ -161,7 +162,7 @@ ggsave("output/Sup_fig_S16.png",
 plot_epidemic_map("B")
 
 ggsave("output/Sup_fig_S17.png",
-       width = 210,
+       width = 170,
        height = 240,
        dpi = 320,
        units = "mm")
