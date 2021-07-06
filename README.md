@@ -15,5 +15,5 @@ China experiences large variations in influenza seasonal activity. We aim to imp
 
 ### Data avaiablity
 
-All data extracted from studies is catalogued in `DES/Data_look_up.xlsx` and available in the `cleandata/` folder with the corresponding csv code.
+All data extracted is catalogued in `DES/Data_look_up.xlsx` and available in the `cleandata/` folder with the corresponding csv code.
 
