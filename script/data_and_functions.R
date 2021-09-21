@@ -3,7 +3,7 @@
 # Read in data and useful functions
 
 # Load in packages
-pacman::p_load(readr, readxl, tidyverse, lubridate, tsibble, ggpubr, geofacet, sf, colorspace, cowplot, ggtext, ggnewscale, grid)
+pacman::p_load(readr, readxl, tidyverse, lubridate, tsibble, ggpubr, geofacet, sf, colorspace, cowplot, ggtext, ggnewscale, grid, RColorBrewer)
 
 ### Data extraction sheet (DES) of all data included in analysis 
 DES_geo <- read_excel("DES/DES.xlsx") %>% 
@@ -96,7 +96,7 @@ monthly_long_function <- function(MEASURE, STRAIN, POP_DENOM){
 ###---### Useful georefrenceing ###---###
 
 # Shape file and names
-shp <- readRDS("data/china_shp.rds") %>% 
+shp <- readRDS("data/china_shp.rds") %>% # Unable to be publicly shared
   mutate(PYNAME = as.character(PYNAME)) %>% 
   mutate(CNTY_CODE = as.character(CNTY_CODE)) %>% 
   mutate(PYNAME = if_else(CNTY_CODE == "431000", "Chenzhou", PYNAME)) %>% # Incorrect name 
@@ -179,3 +179,7 @@ geo_name <- geo_name_function()
 # Nine dash line shp
 nine <- st_read("data/nine/nine.shp") %>% 
   st_transform(.,st_crs(shp))
+
+
+# Palette
+my_pal <- colorRampPalette(brewer.pal(n = 9, name = "Oranges"))

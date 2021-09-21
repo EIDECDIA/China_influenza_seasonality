@@ -29,66 +29,83 @@ month_data_B <- monthly_long_function("Positive rate", "B", "ILI outpatient") %>
 strain_comb <- bind_rows(month_data_H3, month_data_H1, month_data_B)
 
 #### Mean monthly rates (MMR) ####
+
 # MMR for all strains 
+# Pre vs. post pandemic MMR (only provinces)
 MMR_all <- month_data_all %>% 
   mutate(month = month(time)) %>% 
   group_by(strain, geo_code, time) %>% 
   summarise(mean = mean(x), date = max(t)) %>% # mean of all studies 
   ungroup() %>% 
+  mutate(season = if_else(date >= as.Date("2009-10-01") & date <= as.Date("2010-09-30"), "09/10", "non-pand")) %>% # Pandemic or non-pandemic 
+  filter(season != "09/10") %>% # Exclude pandemic year
+  mutate(pp = if_else(date <= as.Date("2009-09-30"), "Pre-pandemic", "Post-pandemic")) %>% # Pre or post pandemic
+  mutate(pp = factor(pp, levels = c("Pre-pandemic", "Post-pandemic"))) %>% 
   mutate(month = month(time)) %>% 
-  group_by(strain, geo_code, month) %>% 
-  summarise(month_mean = mean(mean, na.rm = TRUE)*100, # MMR 
+  group_by(strain, geo_code, pp, month) %>% 
+  summarise(month_mean = mean(mean, na.rm = TRUE)*100, # MMR by admin region for both pre and post pandemic 
             sd = sd(mean, na.rm = TRUE),
             n = n()) %>%
-  mutate(se = sd / sqrt(n),
-         lower_ci = month_mean - qt(1 - (0.05 / 2), n - 1) * se,
-         upper_ci = month_mean + qt(1 - (0.05 / 2), n - 1) * se) %>% 
   mutate(geo_code = as.character(geo_code)) %>% 
   left_join(., shp_code, c("geo_code"="code")) %>% 
-  filter(n >= 2) # only prv with >2 years data
+  mutate(prv = substr(geo_code, 1,2)) %>% 
+  mutate(prf = substr(geo_code, 3,4)) %>% 
+  mutate(cty = substr(geo_code, 5,6)) %>% 
+  mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
+  filter(n >= 2) %>%  # Filter to only regions with >=2 years data
+  filter(prf == "00") %>% # Filter to only provinces
+  mutate(m_name = month(month, label = TRUE, abbr = TRUE)) %>% 
+  mutate(m_name_or = factor(m_name, levels = c( "Oct","Nov", "Dec",
+                                                "Jan", "Feb","Mar", 
+                                                "Apr", "May", "Jun",
+                                                "Jul", "Aug", "Sep"))) %>% 
+  mutate(strain_or = factor(strain, levels = c("All influenza strains", "A/H3N2", "A/H1N1pdm09", "B")))
 
 # MMR for individual strains 
+# Pre vs. post pandemic MMR (only provinces)
 MMR_strain <- strain_comb %>% 
   mutate(month = month(time)) %>% 
   group_by(strain, geo_code, time) %>% 
-  summarise(mean = mean(x), date = max(t)) %>% 
+  summarise(mean = mean(x), date = max(t)) %>% # mean of all studies 
   ungroup() %>% 
+  mutate(season = if_else(date >= as.Date("2009-10-01") & date <= as.Date("2010-09-30"), "09/10", "non-pand")) %>% # Pandemic or non-pandemic 
+  filter(season != "09/10") %>% # Exclude pandemic year
+  mutate(pp = if_else(date <= as.Date("2009-09-30"), "Pre-pandemic", "Post-pandemic")) %>% # Pre or post pandemic
+  mutate(pp = factor(pp, levels = c("Pre-pandemic", "Post-pandemic"))) %>% 
   mutate(month = month(time)) %>% 
-  group_by(strain, geo_code, month) %>% 
-  summarise(month_mean = mean(mean, na.rm = TRUE)*100,
+  group_by(strain, geo_code, pp, month) %>% 
+  summarise(month_mean = mean(mean, na.rm = TRUE)*100, # MMR by admin region for both pre and post pandemic 
             sd = sd(mean, na.rm = TRUE),
             n = n()) %>%
-  mutate(se = sd / sqrt(n),
-         lower_ci = month_mean - qt(1 - (0.05 / 2), n - 1) * se,
-         upper_ci = month_mean + qt(1 - (0.05 / 2), n - 1) * se) %>% 
   mutate(geo_code = as.character(geo_code)) %>% 
   left_join(., shp_code, c("geo_code"="code")) %>% 
-  filter(n >= 2) # only prv with >2 years data
+  mutate(prv = substr(geo_code, 1,2)) %>% 
+  mutate(prf = substr(geo_code, 3,4)) %>% 
+  mutate(cty = substr(geo_code, 5,6)) %>% 
+  mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
+  filter(n >= 2) %>%  # Filter to only regions with >=2 years data
+  filter(prf == "00") %>% # Filter to only provinces
+  mutate(m_name = month(month, label = TRUE, abbr = TRUE)) %>% 
+  mutate(m_name_or = factor(m_name, levels = c( "Oct","Nov", "Dec",
+                                                "Jan", "Feb","Mar", 
+                                                "Apr", "May", "Jun",
+                                                "Jul", "Aug", "Sep"))) %>% 
+  mutate(strain_or = factor(strain, levels = c("All influenza strains", "A/H3N2", "A/H1N1pdm09", "B")))
 
 
 #### Plots ####
 
 # All strain 
-MMR_all_plot <- MMR_all %>%  
-  mutate(prv = substr(geo_code, 1,2)) %>% 
-  mutate(prf = substr(geo_code, 3,4)) %>% 
-  mutate(cty = substr(geo_code, 5,6)) %>% 
-  mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
-  filter(prf == "00") %>% 
-  mutate(date = ymd(200101)+ months(month-1)) %>% 
-  mutate(m_name = as.character(month(date, label = TRUE, abbr = TRUE))) %>% 
-  mutate(m_name_or = factor(m_name, levels = c( "Oct","Nov", "Dec",
-                                                "Jan", "Feb","Mar", 
-                                                "Apr", "May", "Jun",
-                                                "Jul", "Aug", "Sep"))) %>% 
-  mutate(strain_or = factor(strain, levels = c("All influenza strains", "A/H3N2", "A/H1N1pdm09", "B"))) %>% 
+MMR_all_plot <- MMR_all %>% 
+  filter(pp == "Post-pandemic") %>% 
   ggplot(., aes(x = m_name_or, y = lat_order)) +
   geom_tile(aes(fill = month_mean))+
   facet_grid(cols =  vars(strain_or)) +
-  scale_fill_continuous_sequential(name="MMR influenza test positivity (%)", 
-                                   palette = "Oranges", 
-                                   breaks= c(5, 10, 15, 20, 25), 
-                                   guide=guide_colorsteps(show.limits=FALSE, barwidth=12, title.position="top", frame.colour = "black"))+
+  scale_fill_gradientn(name="MMR influenza test positivity (%)",
+                       colours = my_pal(100), 
+                       limits = c(0, 45), 
+                       breaks= c(10, 20, 30, 40),
+                       guide= guide_colorsteps(show.limits=FALSE, barwidth=12, title.position="top", frame.colour = "black")) +
   labs(y = "",x = "") +
   coord_cartesian(xlim = c(0.5, 12.5),expand=F)+
   theme_minimal()+
@@ -102,30 +119,18 @@ MMR_all_plot <- MMR_all %>%
         axis.text.y = element_text(size = 6, hjust = 0),
         axis.text.x = element_text(angle = 90, vjust = 0.4, hjust =0))
 
-
-
 # Individual strains 
-MMR_strain_plot <- MMR_strain %>% 
-  mutate(prv = substr(geo_code, 1,2)) %>% 
-  mutate(prf = substr(geo_code, 3,4)) %>% 
-  mutate(cty = substr(geo_code, 5,6)) %>% 
-  mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
-  filter(prf == "00") %>% 
-  mutate(date = ymd(200101)+ months(month-1)) %>% 
-  mutate(m_name = as.character(month(date, label = TRUE, abbr = TRUE))) %>% 
-  mutate(m_name_or = factor(m_name, levels = c( "Oct","Nov", "Dec",
-                                                "Jan", "Feb","Mar", 
-                                                "Apr", "May", "Jun",
-                                                "Jul", "Aug", "Sep"))) %>% 
-  mutate(strain_or = factor(strain, levels = c("All influenza strains", "A/H3N2", "A/H1N1pdm09", "B"))) %>% 
+MMR_strain_plot <- MMR_strain  %>% 
+  filter(pp == "Post-pandemic") %>% 
   ggplot(., aes(x = m_name_or, y = lat_order)) +
   geom_tile(aes(fill = month_mean))+
   facet_grid(cols =  vars(strain_or)) +
   
-  scale_fill_continuous_sequential(name="MMR influenza test positivity (%)", 
-                                   palette = "Oranges", 
-                                   breaks= c( 5, 1, 15, 2, 25), 
-                                   guide=guide_colorsteps(show.limits=FALSE, barwidth=8, title.position="top", frame.colour = "black"))+
+  scale_fill_gradientn(name="MMR influenza test positivity (%)",
+                       colours = my_pal(100), 
+                       limits = c(0, 45), 
+                       breaks= c(10, 20, 30, 40),
+                       guide= guide_colorsteps(show.limits=FALSE, barwidth=12, title.position="top", frame.colour = "black")) +
   labs(y = "",x = "") +
   coord_cartesian(xlim = c(0.5, 12.5),expand=F)+
   theme_minimal()+
@@ -133,12 +138,11 @@ MMR_strain_plot <- MMR_strain %>%
         legend.box = "vertical",
         panel.background = element_rect(fill ="grey90"),
         panel.border = element_rect(fill = NA),
-        panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.ticks = element_line(colour = "black"),
-        panel.spacing = unit(5, "mm"),
+        panel.spacing = unit(8, "mm"),
         axis.text.y = element_text(size = 6, hjust = 0),
-        axis.text.x = element_text(size = 6, angle = 90, vjust = 0.3, hjust =0))
+        axis.text.x = element_text(angle = 90, vjust = 0.4, hjust =0))
 
 
 #### Plot combined #### 
@@ -163,48 +167,23 @@ ggsave("output/Fig_2.png",
 
 #### Text results ####
 
-# Average rate in each month (all strain, all prv)
+# All strain  peak and low months across all provinces
+# Post pandemic
 MMR_all %>% 
-  mutate(prv = substr(geo_code, 1,2)) %>% 
-  mutate(prf = substr(geo_code, 3,4)) %>% 
-  mutate(cty = substr(geo_code, 5,6)) %>% 
-  mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
-  filter(prf == "00") %>% 
+  filter(pp == "Post-pandemic") %>% 
   group_by(month) %>% 
   summarise(mean = mean(month_mean, na.rm = TRUE),
             sd = sd(month_mean, na.rm = TRUE),
             n = n()) %>%
   mutate(se = sd / sqrt(n),
          lower_ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
-         upper_ci = mean + qt(1 - (0.05 / 2), n - 1) * se) 
+         upper_ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>% 
+  filter(mean == max(mean) | mean == min(mean))
 
-# All provinces in Jan
-MMR_all %>% 
-  mutate(prv = substr(geo_code, 1,2)) %>% 
-  mutate(prf = substr(geo_code, 3,4)) %>% 
-  mutate(cty = substr(geo_code, 5,6)) %>% 
-  mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
-  filter(prf == "00") %>% 
-  filter(month == 1) %>% 
-  arrange(month_mean)
-
-# All provinces in Jun
-MMR_all %>% 
-  mutate(prv = substr(geo_code, 1,2)) %>% 
-  mutate(prf = substr(geo_code, 3,4)) %>% 
-  mutate(cty = substr(geo_code, 5,6)) %>% 
-  mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
-  filter(prf == "00") %>% 
-  filter(month == 6) %>% 
-  arrange(month_mean)
-
-# Strain specific peak months across all provinces
+# Strain specific peak and low months across all provinces
+# Post pandemic
 MMR_strain %>% 
-  mutate(prv = substr(geo_code, 1,2)) %>% 
-  mutate(prf = substr(geo_code, 3,4)) %>% 
-  mutate(cty = substr(geo_code, 5,6)) %>% 
-  mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
-  filter(prf == "00") %>% 
+  filter(pp == "Post-pandemic") %>% 
   group_by(strain, month) %>% 
   summarise(mean = mean(month_mean, na.rm = TRUE),
             sd = sd(month_mean, na.rm = TRUE),
@@ -212,27 +191,27 @@ MMR_strain %>%
   mutate(se = sd / sqrt(n),
          lower_ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
          upper_ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>% 
-  group_by(strain) %>% 
-  filter(mean == max(mean))
+  filter(mean == max(mean) | mean == min(mean)) %>% 
+  arrange(strain, mean)
 
-# Max and min months in each province 
+# Min and Max prv MMR in highest and lowest mean months
+# Post pandemic
 MMR_all %>% 
-  mutate(prv = substr(geo_code, 1,2)) %>% 
-  mutate(prf = substr(geo_code, 3,4)) %>% 
-  mutate(cty = substr(geo_code, 5,6)) %>% 
-  mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
-  filter(prf == "00") %>% 
+  filter(pp == "Post-pandemic") %>% 
+  filter(month == 1 | month == 10) %>% 
+  group_by(strain, month) %>% 
+  filter(month_mean == max(month_mean) | month_mean == min(month_mean)) %>% 
+  arrange(month, month_mean)
+
+# Max month in each province 
+MMR_all %>% 
   group_by(lat_order, month) %>%
   summarise(mean = mean(month_mean, na.rm = TRUE)) %>%
   filter(mean == max(mean)) %>% 
   mutate(value = "max") %>% view()
 
+# Min month in each province 
 MMR_all %>% 
-  mutate(prv = substr(geo_code, 1,2)) %>% 
-  mutate(prf = substr(geo_code, 3,4)) %>% 
-  mutate(cty = substr(geo_code, 5,6)) %>% 
-  mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
-  filter(prf == "00") %>% 
   group_by(lat_order, month) %>%
   summarise(mean = mean(month_mean, na.rm = TRUE)) %>%
   filter(mean == min(mean)) %>% 

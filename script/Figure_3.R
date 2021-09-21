@@ -27,7 +27,7 @@ month_data_B <- monthly_long_function("Positive rate", "B", "ILI outpatient") %>
 
 
 ### ALL STRAIN MAP FUNCTION
-
+# Post-pandemic 
 plot_epidemic_map <- function(STRAIN){
   
   # Raw TS for indiviual strains bind
@@ -39,33 +39,44 @@ plot_epidemic_map <- function(STRAIN){
   MMR_all <- strain_comb %>% 
     mutate(month = month(time)) %>% 
     group_by(strain, geo_code, time) %>% 
-    summarise(mean = mean(x), date = max(t)) %>% 
+    summarise(mean = mean(x), date = max(t)) %>% # mean of all studies 
     ungroup() %>% 
+    mutate(season = if_else(date >= as.Date("2009-10-01") & date <= as.Date("2010-09-30"), "09/10", "non-pand")) %>% # Pandemic or non-pandemic 
+    filter(season != "09/10") %>% # Exclude pandemic year
+    mutate(pp = if_else(date <= as.Date("2009-09-30"), "Pre-pandemic", "Post-pandemic")) %>% # Pre or post pandemic
+    mutate(pp = factor(pp, levels = c("Pre-pandemic", "Post-pandemic"))) %>% 
     mutate(month = month(time)) %>% 
-    group_by(strain, geo_code, month) %>% 
-    summarise(month_mean = mean(mean, na.rm = TRUE),
+    group_by(strain, geo_code, pp, month) %>% 
+    summarise(month_mean = mean(mean, na.rm = TRUE)*100, # MMR by admin region for both pre and post pandemic 
               sd = sd(mean, na.rm = TRUE),
               n = n()) %>%
-    mutate(se = sd / sqrt(n),
-           lower_ci = month_mean - qt(1 - (0.05 / 2), n - 1) * se,
-           upper_ci = month_mean + qt(1 - (0.05 / 2), n - 1) * se) %>% 
+    mutate(geo_code = as.character(geo_code)) %>% 
     left_join(., shp_code, c("geo_code"="code")) %>% 
-    filter(n >= 2)
+    mutate(prv = substr(geo_code, 1,2)) %>% 
+    mutate(prf = substr(geo_code, 3,4)) %>% 
+    mutate(cty = substr(geo_code, 5,6)) %>% 
+    mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
+    filter(n >= 2) %>%  # Filter to only regions with >=2 years data
+    mutate(m_name = month(month, label = TRUE, abbr = TRUE)) %>% 
+    mutate(m_name_or = factor(m_name, levels = c( "Oct","Nov", "Dec",
+                                                  "Jan", "Feb","Mar", 
+                                                  "Apr", "May", "Jun",
+                                                  "Jul", "Aug", "Sep"))) %>% 
+    mutate(strain_or = factor(strain, levels = c("All influenza strains", "A/H3N2", "A/H1N1pdm09", "B")))
   
   
   ### Map data with prf and cty 
   epi_data <- MMR_all %>% 
+    filter(pp == "Post-pandemic") %>% 
     filter(strain == STRAIN) %>% 
-    select(1:4) %>% 
     group_by(geo_code) %>% 
+    mutate(full_year = sum(month)) %>% 
+    filter(full_year == 78) %>% # only include regions with full year
     mutate(sum = sum(month_mean)) %>% 
     mutate(proportion = (month_mean/sum)) %>% 
     arrange(desc(proportion)) %>% 
     mutate(cumsum = cumsum(proportion)) %>% 
-    mutate(epidemic = if_else(cumsum <= 0.75, "Epidemic", "Non-epidemic")) %>%
-    mutate(prv = substr(geo_code, 1,2)) %>% 
-    mutate(prf = substr(geo_code, 3,4)) %>% 
-    mutate(cty = substr(geo_code, 5,6)) %>% 
+    mutate(epidemic = if_else(cumsum <= 0.75, "Epidemic", "Non-epidemic")) %>% 
     mutate(month_name = month(month, label = TRUE, abbr = FALSE)) %>% 
     mutate(oct_month = if_else(month >= 10, month-9, month+3)) %>% 
     group_by(geo_code, epidemic) %>% 
@@ -185,52 +196,62 @@ epi_dur <- function(STRAIN){
   MMR_all <- bind_rows(month_data_all, month_data_H3, month_data_H1, month_data_B) %>% 
     mutate(month = month(time)) %>% 
     group_by(strain, geo_code, time) %>% 
-    summarise(mean = mean(x), date = max(t)) %>% 
+    summarise(mean = mean(x), date = max(t)) %>% # mean of all studies 
     ungroup() %>% 
+    mutate(season = if_else(date >= as.Date("2009-10-01") & date <= as.Date("2010-09-30"), "09/10", "non-pand")) %>% # Pandemic or non-pandemic 
+    filter(season != "09/10") %>% # Exclude pandemic year
+    mutate(pp = if_else(date <= as.Date("2009-09-30"), "Pre-pandemic", "Post-pandemic")) %>% # Pre or post pandemic
+    mutate(pp = factor(pp, levels = c("Pre-pandemic", "Post-pandemic"))) %>% 
     mutate(month = month(time)) %>% 
-    group_by(strain, geo_code, month) %>% 
-    summarise(month_mean = mean(mean, na.rm = TRUE),
+    group_by(strain, geo_code, pp, month) %>% 
+    summarise(month_mean = mean(mean, na.rm = TRUE)*100, # MMR by admin region for both pre and post pandemic 
               sd = sd(mean, na.rm = TRUE),
               n = n()) %>%
-    mutate(se = sd / sqrt(n),
-           lower_ci = month_mean - qt(1 - (0.05 / 2), n - 1) * se,
-           upper_ci = month_mean + qt(1 - (0.05 / 2), n - 1) * se) %>% 
-    left_join(., shp_code, c("geo_code"="code"))
+    mutate(geo_code = as.character(geo_code)) %>% 
+    left_join(., shp_code, c("geo_code"="code")) %>% 
+    mutate(prv = substr(geo_code, 1,2)) %>% 
+    mutate(prf = substr(geo_code, 3,4)) %>% 
+    mutate(cty = substr(geo_code, 5,6)) %>% 
+    mutate(lat_order = factor(PYNAME, levels = geo_lat)) %>% 
+    filter(n >= 2) %>%  # Filter to only regions with >=2 years data
+    filter(prf == "00") %>% # Filter to only provinces
+    mutate(m_name = month(month, label = TRUE, abbr = TRUE)) %>% 
+    mutate(m_name_or = factor(m_name, levels = c( "Oct","Nov", "Dec",
+                                                  "Jan", "Feb","Mar", 
+                                                  "Apr", "May", "Jun",
+                                                  "Jul", "Aug", "Sep"))) %>% 
+    mutate(strain_or = factor(strain, levels = c("All influenza strains", "A/H3N2", "A/H1N1pdm09", "B")))
   
   
   ### Map data with prf and cty 
   epi_length <- MMR_all %>% 
+    filter(pp == "Post-pandemic") %>% 
     filter(strain == STRAIN) %>% 
-    select(1:4) %>% 
-    group_by(geo_code) %>% 
+    group_by(strain, geo_code) %>% 
+    mutate(full_year = sum(month)) %>% 
+    filter(full_year == 78) %>% # only include provinces with full year 
     mutate(sum = sum(month_mean)) %>% 
     mutate(proportion = (month_mean/sum)) %>% 
     arrange(desc(proportion)) %>% 
     mutate(cumsum = cumsum(proportion)) %>% 
     mutate(epidemic = if_else(cumsum <= 0.75, "Epidemic", "Non-epidemic")) %>%
-    mutate(prv = substr(geo_code, 1,2)) %>% 
-    mutate(prf = substr(geo_code, 3,4)) %>% 
-    mutate(cty = substr(geo_code, 5,6)) %>% 
-    filter(prf == "00") %>%
     mutate(epi_no = if_else(epidemic == "Epidemic", 1, 0)) %>% 
     summarise(epi_month = sum(epi_no)) %>% 
     left_join(., shp_code, c("geo_code"="code")) %>%
     mutate(PYNAME = factor(PYNAME, levels = geo_lat)) %>% 
     arrange(desc(PYNAME))
   
-  onset_month <- MMR_all %>% 
+  onset_month <-  MMR_all %>% 
+    filter(pp == "Post-pandemic") %>% 
     filter(strain == STRAIN) %>% 
-    select(1:4) %>% 
-    group_by(geo_code) %>% 
+    group_by(strain, geo_code) %>% 
+    mutate(full_year = sum(month)) %>% 
+    filter(full_year == 78) %>% # only include provinces with full year 
     mutate(sum = sum(month_mean)) %>% 
     mutate(proportion = (month_mean/sum)) %>% 
     arrange(desc(proportion)) %>% 
     mutate(cumsum = cumsum(proportion)) %>% 
     mutate(epidemic = if_else(cumsum <= 0.75, "Epidemic", "Non-epidemic")) %>%
-    mutate(prv = substr(geo_code, 1,2)) %>% 
-    mutate(prf = substr(geo_code, 3,4)) %>% 
-    mutate(cty = substr(geo_code, 5,6)) %>% 
-    filter(prf == "00") %>% 
     mutate(month_name = month(month, label = TRUE, abbr = FALSE)) %>% 
     mutate(oct_month = if_else(month >= 10, month-9, month+3)) %>% 
     group_by(geo_code, epidemic) %>% 
