@@ -18,6 +18,11 @@ MMR_prv <- month_data_all %>%
   group_by(geo_code, time) %>% 
   summarise(mean = mean(x), date = max(t)) %>% # mean of all studies 
   ungroup() %>% 
+  mutate(season = if_else(date >= as.Date("2009-10-01") & date <= as.Date("2010-09-30"), "09/10", "non-pand")) %>% # Pandemic or non-pandemic 
+  filter(season != "09/10") %>% # Exclude pandemic year
+  mutate(pp = if_else(date <= as.Date("2009-09-30"), "Pre-pandemic", "Post-pandemic")) %>% # Pre or post pandemic
+  mutate(pp = factor(pp, levels = c("Pre-pandemic", "Post-pandemic"))) %>% 
+  filter(pp == "Post-pandemic") %>% 
   mutate(month = month(time)) %>% 
   group_by(geo_code, month) %>% 
   summarise(month_mean = mean(mean, na.rm = TRUE)*100, # MMR 
@@ -28,6 +33,8 @@ MMR_prv <- month_data_all %>%
          upper_ci = month_mean + qt(1 - (0.05 / 2), n - 1) * se) %>% 
   left_join(., geo_name, c("geo_code"="code")) %>% 
   filter(n >= 2) %>% # only prv with >2 years data
+  mutate(full_year = sum(month)) %>% 
+  filter(full_year == 78) %>% # only include regions with full year
   mutate(date = ymd(200101)+ months(month-1)) %>% 
   mutate(m_name = as.character(month(date, label = TRUE, abbr = TRUE))) %>% 
   mutate(m_name_or = factor(m_name, levels = c( "Oct","Nov", "Dec",
@@ -42,11 +49,16 @@ MMR_prv <- month_data_all %>%
   mutate(prv_true = factor(prv_true, levels = c("County", "Prefecture", "Province")))
 
 # Sub province level
-MMR_sub <- month_data_all %>% 
+MMR_sub <-  month_data_all %>% 
   mutate(month = month(time)) %>% 
   group_by(geo_code, time) %>% 
   summarise(mean = mean(x), date = max(t)) %>% # mean of all studies 
   ungroup() %>% 
+  mutate(season = if_else(date >= as.Date("2009-10-01") & date <= as.Date("2010-09-30"), "09/10", "non-pand")) %>% # Pandemic or non-pandemic 
+  filter(season != "09/10") %>% # Exclude pandemic year
+  mutate(pp = if_else(date <= as.Date("2009-09-30"), "Pre-pandemic", "Post-pandemic")) %>% # Pre or post pandemic
+  mutate(pp = factor(pp, levels = c("Pre-pandemic", "Post-pandemic"))) %>% 
+  filter(pp == "Post-pandemic") %>% 
   mutate(month = month(time)) %>% 
   group_by(geo_code, month) %>% 
   summarise(month_mean = mean(mean, na.rm = TRUE)*100, # MMR 
@@ -57,6 +69,8 @@ MMR_sub <- month_data_all %>%
          upper_ci = month_mean + qt(1 - (0.05 / 2), n - 1) * se) %>% 
   left_join(., geo_name, c("geo_code"="code")) %>% 
   filter(n >= 2) %>% # only prv with >2 years data
+  mutate(full_year = sum(month)) %>% 
+  filter(full_year == 78) %>% # only include regions with full year
   mutate(date = ymd(200101)+ months(month-1)) %>% 
   mutate(m_name = as.character(month(date, label = TRUE, abbr = TRUE))) %>% 
   mutate(m_name_or = factor(m_name, levels = c( "Oct","Nov", "Dec",

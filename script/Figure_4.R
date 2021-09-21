@@ -38,6 +38,8 @@ all_inten <- month_data_all %>%
   mutate(prf = substr(geo_code, 3,4)) %>% 
   mutate(cty = substr(geo_code, 5,6)) %>% 
   filter(prf == "00") %>% 
+  mutate(season = if_else(date >= as.Date("2009-10-01") & date <= as.Date("2010-09-30"), "09/10", "non-pand")) %>% # Pandemic or non-pandemic 
+  filter(season != "09/10") %>% #Exclude pandemic year
   mutate(month = month(date)) %>% 
   mutate(oct_month = if_else(month >= 10, month-9, month+3)) %>% 
   mutate(year = year(date)) %>%
@@ -105,6 +107,8 @@ strain_inten <- strain_comb %>%
   mutate(prf = substr(geo_code, 3,4)) %>% 
   mutate(cty = substr(geo_code, 5,6)) %>% 
   filter(prf == "00") %>% 
+  mutate(season = if_else(date >= as.Date("2009-10-01") & date <= as.Date("2010-09-30"), "09/10", "non-pand")) %>% # Pandemic or non-pandemic 
+  filter(season != "09/10") %>% #Exclude pandemic year
   mutate(month = month(date)) %>% 
   mutate(oct_month = if_else(month >= 10, month-9, month+3)) %>% 
   mutate(year = year(date)) %>%
