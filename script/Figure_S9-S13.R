@@ -2,7 +2,7 @@
 
 # Produces results for:
 
-# Figure S9 - S12 and MMR results
+# Figure S9 - S13 and MMR results
 
 # Read in data and useful functions
 source("script/data_and_functions.R")
@@ -85,8 +85,12 @@ MMR_data <- all_data %>%
   group_by(measure, geo_code, time) %>% 
   summarise(mean = mean(x), date = max(t)) %>% # mean of all studies 
   ungroup() %>% 
+  mutate(season = if_else(date >= as.Date("2009-10-01") & date <= as.Date("2010-09-30"), "09/10", "non-pand")) %>% # Pandemic or non-pandemic 
+  filter(season != "09/10") %>% # Exclude pandemic year
+  mutate(pp = if_else(date <= as.Date("2009-09-30"), "Pre-pandemic", "Post-pandemic")) %>% # Pre or post pandemic
+  mutate(pp = factor(pp, levels = c("Pre-pandemic", "Post-pandemic"))) %>% 
   mutate(month = month(time)) %>% 
-  group_by(measure, geo_code, month) %>% 
+  group_by(measure, geo_code, pp, month) %>% 
   summarise(month_mean = mean(mean, na.rm = TRUE), # MMR  
             n = n()) %>%  
   left_join(., geo_name, c("geo_code"="code")) %>% 
@@ -117,11 +121,55 @@ lev <- MMR_data %>%
 
 
 # Plot figure 
-### ILI
+
+###TPO compare pre vs. post pandemic 
+MMR_data %>% 
+  filter(measure == "TPO") %>% 
+  mutate(measure = "All influenza strains (ILI outpatient)") %>% 
+  filter(prf == "00") %>% 
+  arrange(lat_order) %>% 
+  mutate(lat_order = as.character(lat_order)) %>% 
+  mutate(x_label = paste("<span style = 'color: ", 
+                         ifelse(prf == "00", "black", "grey50"),
+                         ";'>", lat_order, "</span>", sep = "")) %>% 
+  mutate(x_label= factor(x_label, levels =lev)) %>% 
+  
+  ggplot(., aes(x = m_name_or, y = x_label)) +
+  geom_tile(aes(fill = month_mean*100)) +
+  facet_grid(cols =  vars(pp)) +
+  #facet_wrap(~measure, ncol = 1) +
+  scale_fill_continuous_sequential(name="Infleunza test positivity (%)", 
+                                   palette = "Oranges", 
+                                   breaks= c(10, 20, 30, 40, 50), 
+                                   guide=guide_colorsteps(show.limits=FALSE, barheight= 0.75, barwidth=12, title.position="top", frame.colour = "black"))+
+  labs(y = "",x = "") +
+  coord_cartesian(expand=F)+
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        panel.background = element_rect(fill ="grey90"),
+        panel.border = element_rect(fill = NA),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.ticks = element_line(colour = "black"),
+        panel.spacing = unit(8, "mm"),
+        axis.text.y = element_markdown(size = 6, hjust = 0),
+        axis.text.x = element_text(angle = 90, vjust = 0.4, hjust =0),
+        axis.title = element_blank())
+
+ggsave("output/Sup_fig_S9.png",
+       width = 180,
+       height = 220,
+       dpi = 320,
+       units = "mm")
+
+
+### ILI (post-pandemic only)
 
 MMR_data %>% 
   filter(measure == "ILI") %>% 
   mutate(measure = "ILI consultation rate") %>% 
+  filter(pp == "Post-pandemic") %>% # filter to post-pandemic 
   arrange(lat_order) %>% 
   mutate(lat_order = as.character(lat_order)) %>% 
   mutate(x_label = paste("<span style = 'color: ", 
@@ -151,7 +199,7 @@ MMR_data %>%
         axis.title = element_blank())
 
 
-ggsave("output/Sup_fig_S9.png",
+ggsave("output/Sup_fig_S10.png",
        width = 140,
        height = 220,
        dpi = 320,
@@ -162,6 +210,7 @@ ggsave("output/Sup_fig_S9.png",
 MMR_data %>% 
   filter(measure == "TPO") %>% 
   mutate(measure = "All influenza strains (ILI outpatient)") %>% 
+  filter(pp == "Post-pandemic") %>% # filter to post-pandemic 
   arrange(lat_order) %>% 
   mutate(lat_order = as.character(lat_order)) %>% 
   mutate(x_label = paste("<span style = 'color: ", 
@@ -181,6 +230,7 @@ MMR_data %>%
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.box = "horizontal",
+        panel.background = element_rect(fill ="grey90"),
         panel.border = element_rect(fill = NA),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
@@ -190,7 +240,7 @@ MMR_data %>%
         axis.text.x = element_text(angle = 90, vjust = 0.4, hjust =0),
         axis.title = element_blank())
 
-ggsave("output/Sup_fig_S10.png",
+ggsave("output/Sup_fig_S11.png",
        width = 140,
        height = 230,
        dpi = 320,
@@ -205,6 +255,7 @@ MMR_data %>%
   mutate(measure = if_else(measure == "TPO_H1", "A/H1N1pdm09", measure)) %>%
   mutate(measure = if_else(measure == "TPO_B", "B", measure)) %>%
   mutate(measure = factor(measure, levels = c("A/H3N2", "A/H1N1pdm09", "B"))) %>% 
+  filter(pp == "Post-pandemic") %>% # filter to post-pandemic 
   arrange(lat_order) %>% 
   mutate(lat_order = as.character(lat_order)) %>% 
   mutate(x_label = paste("<span style = 'color: ", 
@@ -233,7 +284,7 @@ MMR_data %>%
         axis.text.x = element_text(angle = 90, vjust = 0.4, hjust =0, size = 6),
         axis.title = element_blank())
 
-ggsave("output/Sup_fig_S11.png",
+ggsave("output/Sup_fig_S12.png",
        width = 140,
        height = 230,
        dpi = 320,
@@ -267,6 +318,7 @@ plot_rest_MMR <- function(){
     theme(legend.position = "right",
           legend.box = "vertical",
           legend.title = element_text(size = 8, hjust = 0),
+          panel.background = element_rect(fill ="grey90"),
           panel.border = element_rect(fill = NA),
           panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(),
@@ -302,6 +354,7 @@ plot_rest_MMR <- function(){
     theme(legend.position = "right",
           legend.box = "vertical",
           legend.title = element_text(size = 8, hjust = 0),
+          panel.background = element_rect(fill ="grey90"),
           panel.border = element_rect(fill = NA),
           panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(),
@@ -336,6 +389,7 @@ plot_rest_MMR <- function(){
     theme(legend.position = "right",
           legend.box = "vertical",
           legend.title = element_text(size = 8, hjust = 0),
+          panel.background = element_rect(fill ="grey90"),
           panel.border = element_rect(fill = NA),
           panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(),
@@ -353,7 +407,7 @@ plot_rest_MMR <- function(){
 
 plot_rest_MMR()
 
-ggsave("output/Sup_fig_S12.png",
+ggsave("output/Sup_fig_S13.png",
        width = 140,
        height = 160,
        dpi = 320,

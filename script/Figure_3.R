@@ -2,7 +2,7 @@
 
 # Produces results for:
 
-# Figure 3, Figure S15 - S17, & onset month and epidemic length results
+# Figure 3, Figure S16 - S18 & onset month and epidemic length results
 
 # Read in data and useful functions
 source("script/data_and_functions.R")
@@ -152,7 +152,7 @@ ggsave("output/Fig_3.png",
 # A/H3N2 plot
 plot_epidemic_map("A/H3N2")
 
-ggsave("output/Sup_fig_S15.png",
+ggsave("output/Sup_fig_S16.png",
        width = 170,
        height = 240,
        dpi = 320,
@@ -162,7 +162,7 @@ ggsave("output/Sup_fig_S15.png",
 # A/H1N1pdm09 plot
 plot_epidemic_map("A/H1N1pdm09")
 
-ggsave("output/Sup_fig_S16.png",
+ggsave("output/Sup_fig_S17.png",
        width = 170,
        height = 240,
        dpi = 320,
@@ -172,7 +172,7 @@ ggsave("output/Sup_fig_S16.png",
 # B plot
 plot_epidemic_map("B")
 
-ggsave("output/Sup_fig_S17.png",
+ggsave("output/Sup_fig_S18.png",
        width = 170,
        height = 240,
        dpi = 320,
@@ -286,7 +286,7 @@ epi_dur <- function(STRAIN){
 }
 
 # Epidemic length and onset in each province and overall mean (all strain)
-epi_dur("All influenza strains") 
+epi_dur("All influenza strains") %>% view()
 
 # Epidemic length and onset in each province and overall mean (A/H3N2)
 epi_dur("A/H3N2") 
